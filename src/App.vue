@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { message } from 'ant-design-vue'
+
+import { useGlobalStore } from '@/store/modules/global'
+
+const route = useRoute()
+const globalStore = useGlobalStore()
+
+const isLoading = computed(() => globalStore.isLoading)
+const showLoading = computed(() => isLoading.value && !route.meta.disableLoading)
+
+const error = computed(() => globalStore.error)
+watch(() => error.value.status, (errorValue) => {
+  if (errorValue)
+    message.error(error.value.message || '未知错误', 2)
+})
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo">
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo">
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <a-spin v-if="showLoading" tip="读取中" class="app-spinner" />
+  <router-view />
 </template>
 
 <style scoped>
- .logo {
-  height: 6em;
-  padding: 1.5em;
-  transition: filter 300ms;
-  will-change: filter;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+.app-spinner {
+  position: fixed;
+  top: 10px;
+  right: 50%;
 }
 </style>
