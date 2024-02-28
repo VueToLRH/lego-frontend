@@ -19,7 +19,7 @@ export default {
   overrides: [
     // css 相关文件由 postcss-scss 处理
     {
-      files: ['src/**/*.(scss|sass|css|vue|html)'],
+      files: ['**/*.(scss|sass|css|vue|html)'],
       customSyntax: 'postcss-scss'
     },
     // 扫描 .vue/html 文件中的 <style> 标签内的样式

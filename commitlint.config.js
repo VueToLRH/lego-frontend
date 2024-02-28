@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // 继承的规则
   extends: ['@commitlint/config-conventional'],
   // 定义规则类型
@@ -19,7 +19,6 @@ module.exports = {
         'ci', // 修改 CI 配置、脚本
         'chore', // 对构建过程或辅助工具和库的更改（不影响源文件、测试用例
         'revert', // 回滚 commit
-        'init', // 初始化项目
       ],
     ],
     'subject-case': [0], // subject 大小写不做校验

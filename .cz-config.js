@@ -5,14 +5,13 @@ module.exports = {
     { value: 'fix', name: 'fix:      🐞 修复 bug' },
     { value: 'docs', name: 'docs:     📝 文档变更' },
     { value: 'style', name: 'style:    💄 代码格式（不影响功能，例如空格、分号等格式修正）' },
-    { value: 'refactor', name: 'refactor: 🛠  代码重构（不包括 bug 修复、功能新增）' },
+    { value: 'refactor', name: 'refactor: 🛠 代码重构（不包括 bug 修复、功能新增）' },
     { value: 'perf', name: 'perf:     ⚡ 性能优化' },
     { value: 'test', name: 'test:     🏁 添加、修改测试用例' },
     { value: 'build', name: 'build:    📦 构建流程、外部依赖变更（如升级 npm 包、修改 webpack 配置等）' },
     { value: 'ci', name: 'ci:       🔧 修改 CI 配置、脚本' },
-    { value: 'chore', name: 'chore:    🗯  对构建过程或辅助工具和库的更改（不影响源文件、测试用例）' },
+    { value: 'chore', name: 'chore:    🗯 对构建过程或辅助工具和库的更改（不影响源文件、测试用例）' },
     { value: 'revert', name: 'revert:   ⏪ 回滚 commit' },
-    { value: 'init', name: 'init:     🏡 初始化项目' },
   ],
 
   // scope 类型（定义之后，可通过上下键选择）
@@ -20,12 +19,14 @@ module.exports = {
     ['components', '组件相关'],
     ['hooks', 'hook 相关'],
     ['utils', 'utils 相关'],
+    ['element-ui', '对 element-ui 的调整'],
     ['styles', '样式相关'],
     ['deps', '项目依赖'],
     ['auth', '对 auth 修改'],
     ['other', '其他修改'],
+    ['empty', '空'],
     // 如果选择 custom，后面会让你再输入一个自定义的 scope。也可以不设置此项，把后面的 allowCustomScopes 设置为 true
-    // ['custom', '以上都不是？我要自定义'],
+    ['custom', '以上都不是？我要自定义'],
   ].map(([value, description]) => {
     return {
       value,
@@ -34,7 +35,7 @@ module.exports = {
   }),
 
   // 是否允许自定义填写 scope，在 scope 选择的时候，会有 empty 和 custom 可以选择。
-  allowCustomScopes: true,
+  // allowCustomScopes: true,
 
   // allowTicketNumber: false,
   // isTicketNumberRequired: false,
