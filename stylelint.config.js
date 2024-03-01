@@ -10,7 +10,7 @@ export default {
     'stylelint-config-rational-order',
     'stylelint-no-unsupported-browser-features',
     'stylelint-config-html',
-    'stylelint-config-recommended-vue'
+    'stylelint-config-recommended-vue',
   ],
   // stylelint-order : 用于规范样式属性写作顺序的插件
   // stylelint-declaration-block-no-ignored-properties : 用于提示写矛盾的样式。例如：{ display: inline; width: 100px; }
@@ -18,15 +18,20 @@ export default {
   // customSyntax: 'postcss-html',
   overrides: [
     // css 相关文件由 postcss-scss 处理
-    {
-      files: ['**/*.(scss|sass|css|vue|html)'],
-      customSyntax: 'postcss-scss'
-    },
+    // {
+    //   files: ['**/*.(scss|sass|css|vue|html)'],
+    //   customSyntax: 'postcss-scss',
+    // },
+    // css 相关文件由 postcss-less 处理
+    // {
+    //   files: ['**/*.(less|css|vue|html)'],
+    //   customSyntax: 'postcss-less',
+    // },
     // 扫描 .vue/html 文件中的 <style> 标签内的样式
     {
       files: ['**/*.(html|vue)'],
-      customSyntax: 'postcss-html'
-    }
+      customSyntax: 'postcss-html',
+    },
   ],
   rules: {
     // 禁止使用未知的 at 规则。
@@ -48,16 +53,16 @@ export default {
           'include',
           'content',
           'return',
-          'function'
-        ]
-      }
+          'function',
+        ],
+      },
     ],
     // 禁止使用未知的 media 特性名称。
     'media-feature-name-no-unknown': [
       true,
       {
-        ignoreMediaFeatureNames: ['print', 'min-device-pixel-ratio']
-      }
+        ignoreMediaFeatureNames: ['print', 'min-device-pixel-ratio'],
+      },
     ],
     // 禁止低优先级的选择器出现在高优先级的选择器之后
     'no-descending-specificity': null,
@@ -72,8 +77,8 @@ export default {
     'function-name-case': [
       'lower',
       {
-        ignoreFunctions: ['/^.*$/']
-      }
+        ignoreFunctions: ['/^.*$/'],
+      },
     ],
     // 禁止字体家族名称列表中缺少通用家族
     'font-family-no-missing-generic-family-keyword': null,
@@ -85,9 +90,9 @@ export default {
     'selector-type-no-unknown': [
       true,
       {
-        ignoreTypes: []
-      }
+        ignoreTypes: [],
+      },
     ],
-    'declaration-block-no-duplicate-properties': null
-  }
+    'declaration-block-no-duplicate-properties': null,
+  },
 }
