@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 
@@ -8,6 +9,7 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 export default defineConfig({
   plugins: [
     vue(),
+    vueJsx(),
     components({
       resolvers: [
         AntDesignVueResolver({
@@ -19,6 +21,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '#': resolve(__dirname, 'types'),
     },
   },
 })

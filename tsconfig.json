@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "jsx": "preserve",
+    "jsxImportSource": "vue",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "useDefineForClassFields": true,
 
@@ -11,7 +12,8 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "#/*": ["types/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
