@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'
 import { cloneDeep, debounce } from 'lodash-es'
+import { message } from 'ant-design-vue'
 import type { AllComponentProps } from '@/components/lego/defaultProps'
+
+export type MoveDirection = 'Up' | 'Down' | 'Left' | 'Right'
 
 export interface ComponentData {
   // 元素的属性，属性请详见下面
@@ -33,15 +36,51 @@ export interface HistoryProps {
   index?: number
 }
 
+export interface PageData {
+  id?: number
+  props?: PageProps
+  title?: string
+  desc?: string
+  coverImg?: string
+  uuid?: string
+  setting?: { [key: string]: any }
+  isTemplate?: boolean
+  isHot?: boolean
+  isNew?: boolean
+  author?: string
+  copiedCount?: number
+  status?: number
+  user?: {
+    gender: string
+    nickName: string
+    picture: string
+    userName: string
+  }
+}
+
+export interface UpdatePageData {
+  key: keyof PageData
+  value: any
+  isRoot?: boolean
+  isSetting?: boolean
+}
+
+export interface ChannelProps {
+  id: number
+  name: string
+  workId: number
+  status: number
+}
+
 export interface EditorProps {
   // 供中间编辑器渲染的数组
   components: ComponentData[]
   // 当前编辑的元素 uuid
   currentElement: string
-  // // 当然最后保存的时候还有有一些项目信息，这里并没有写出，等做到的时候再补充
-  // page: PageData
+  // 当然最后保存的时候,还有有一些项目信息
+  page: PageData
   // // 当前被复制的组件
-  // copiedComponent?: ComponentData
+  copiedComponent?: ComponentData
   // 当前操作的历史记录
   histories: HistoryProps[]
   // 当前历史记录的操作位置
@@ -52,8 +91,8 @@ export interface EditorProps {
   maxHistoryNumber: number
   // 数据是否有修改
   isDirty: boolean
-  // // 当前 work 的 channels
-  // channels: ChannelProps[]
+  // 当前 work 的 channels
+  channels: ChannelProps[]
 }
 
 export interface PageProps {
@@ -66,9 +105,21 @@ export interface PageProps {
 
 export type AllFormProps = PageProps & AllComponentProps
 
+const pageDefaultProps = {
+  backgroundColor: '#ffffff',
+  backgroundImage: '',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'cover',
+  height: '560px',
+}
+
 export const useEditorStore = defineStore({
   id: 'editor',
   state: (): EditorProps => ({
+    page: {
+      props: pageDefaultProps,
+      title: 'page title',
+    },
     components: [],
     currentElement: '',
     histories: [],
@@ -76,10 +127,28 @@ export const useEditorStore = defineStore({
     cachedOldValues: null,
     maxHistoryNumber: 5,
     isDirty: false,
+    channels: [],
   }),
   getters: {
     getCurrentElement(state) {
       return state.components.find(component => component.id === state.currentElement)
+    },
+    getElement: state => (id: string) => {
+      return state.components.find(component => component.id === (id || state.currentElement))
+    },
+    checkUndoDisable(state) {
+      if (state.histories.length === 0 || state.historyIndex === 0)
+        return true
+
+      return false
+    },
+    checkRedoDisable(state) {
+      if (state.histories.length === 0
+        || state.historyIndex === state.histories.length
+        || state.historyIndex === -1)
+        return true
+
+      return false
     },
   },
   actions: {
@@ -115,6 +184,145 @@ export const useEditorStore = defineStore({
     setActive(currentId: string) {
       this.currentElement = currentId
     },
+    modifyHistory(history: HistoryProps, type: 'undo' | 'redo') {
+      const { componentId, data } = history
+      const { key, oldValue, newValue } = data
+      const newKey = key as keyof AllComponentProps | Array<keyof AllComponentProps>
+      const updatedComponent = this.components.find(component => component.id === componentId)
+
+      if (updatedComponent) {
+        if (Array.isArray(newKey)) {
+          newKey.forEach((keyName, index) => {
+            updatedComponent.props[keyName] = type === 'undo' ? oldValue[index] : newValue[index]
+          })
+        }
+        else {
+          updatedComponent.props[newKey] = type === 'undo' ? oldValue : newValue
+        }
+      }
+    },
+    undo() {
+      if (this.historyIndex === -1)
+        this.historyIndex = this.histories.length - 1
+      else
+        this.historyIndex--
+
+      const history = this.histories[this.historyIndex]
+      const insertAt = (arr: any[], index: number, newItem: any) => {
+        return [...arr.slice(0, index), newItem, ...arr.slice(index)]
+      }
+
+      switch (history.type) {
+        case 'add':
+          this.components = this.components.filter(component => component.id !== history.componentId)
+          break
+        case 'delete':
+          this.components = insertAt(this.components, history.index as number, history.data)
+          break
+        case 'modify':
+          this.modifyHistory(history, 'undo')
+          break
+        default:
+          break
+      }
+    },
+    redo() {
+      if (this.historyIndex === -1)
+        return
+
+      const history = this.histories[this.historyIndex]
+      switch (history.type) {
+        case 'add':
+          this.components.push(history.data)
+          break
+        case 'delete':
+          this.components = this.components.filter(component => component.id !== history.componentId)
+          break
+        case 'modify': {
+          this.modifyHistory(history, 'redo')
+          break
+        }
+        default:
+          break
+      }
+      this.historyIndex++
+    },
+    copyComponent(id: string) {
+      const currentComponent = this.getElement(id)
+      if (currentComponent)
+        this.copiedComponent = currentComponent
+    },
+    pasteCopiedComponent() {
+      this.setDirty()
+
+      if (this.copiedComponent) {
+        const clone = cloneDeep(this.copiedComponent)
+        clone.id = uuidv4()
+        clone.layerName = `${clone.layerName}副本`
+        this.components.push(clone)
+        message.success('已复制当前图层！', 1)
+
+        const componentData: HistoryProps = {
+          id: uuidv4(),
+          componentId: clone.id,
+          type: 'add',
+          data: cloneDeep(clone),
+        }
+        this.pushHistory(componentData)
+      }
+    },
+    deleteComponent(id: string) {
+      this.setDirty()
+
+      const currentComponent = this.components.find(component => component.id === id)
+      if (currentComponent) {
+        const currentIndex = this.components.findIndex(component => component.id === id)
+        this.components = this.components.filter(component => component.id !== id)
+
+        const componentData: HistoryProps = {
+          id: uuidv4(),
+          componentId: currentComponent.id,
+          type: 'delete',
+          data: currentComponent,
+          index: currentIndex,
+        }
+        this.pushHistory(componentData)
+
+        message.success('已删除当前图层！', 1)
+      }
+    },
+    moveComponent(data: { direction: MoveDirection, amount: number, id: string }) {
+      const currentComponent = this.components.find(component => component.id === data.id)
+      if (currentComponent) {
+        const oldTop = Number.parseInt(currentComponent.props.top || '0')
+        const oldLeft = Number.parseInt(currentComponent.props.left || '0')
+        const { direction, amount } = data
+        switch (direction) {
+          case 'Up': {
+            const newValue = `${oldTop - amount}px`
+            this.updateComponent({ key: 'top', value: newValue, id: data.id })
+            break
+          }
+          case 'Down': {
+            const newValue = `${oldTop + amount}px`
+            this.updateComponent({ key: 'top', value: newValue, id: data.id })
+            break
+          }
+          case 'Left': {
+            const newValue = `${oldLeft - amount}px`
+            this.updateComponent({ key: 'left', value: newValue, id: data.id })
+            break
+          }
+          case 'Right': {
+            const newValue = `${oldLeft + amount}px`
+            this.updateComponent({ key: 'left', value: newValue, id: data.id })
+            break
+          }
+          default:
+            break
+        }
+      }
+    },
     updateComponent({ key, value, id, isRoot }: UpdateComponentData) {
       this.setDirty()
 
@@ -128,7 +336,6 @@ export const useEditorStore = defineStore({
           if (!this.cachedOldValues)
             this.cachedOldValues = oldValue
 
-          // TODO: debounce 优化
           const componentData: HistoryProps = {
             id: uuidv4(),
             componentId: (id || this.currentElement),
@@ -147,6 +354,23 @@ export const useEditorStore = defineStore({
             updatedComponent.props[key] = value
           }
         }
+      }
+    },
+    updatePage({ key, value, isRoot, isSetting }: UpdatePageData) {
+      this.setDirty()
+
+      if (isRoot) {
+        this.page[key as keyof PageData] = value
+      }
+      else if (isSetting) {
+        this.page.setting = {
+          ...this.page.setting,
+          [key]: value,
+        }
+      }
+      else {
+        if (this.page.props)
+          this.page.props[key as keyof PageProps] = value
       }
     },
   },

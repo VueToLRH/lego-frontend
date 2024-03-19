@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { pickBy } from 'lodash-es'
 
 import InlineEdit from '@/components/InlineEdit.vue'
@@ -7,6 +7,9 @@ import UserProfile from '@/components/UserProfile.vue'
 import ComponentList from '@/components/ComponentList.vue'
 import EditWrapper from '@/components/EditWrapper.vue'
 import EditGroup from '@/components/EditGroup.vue'
+import HistoryArea from '@/components/HistoryArea.vue'
+import LayerList from '@/components/LayerList.vue'
+import PropsTable from '@/components/PropsTable/index.vue'
 import LegoText from '@/components/lego/LegoText.vue'
 import LegoImage from '@/components/lego/LegoImage.vue'
 import LegoShape from '@/components/lego/LegoShape.vue'
@@ -23,12 +26,18 @@ const legoComponents = {
   LegoShape,
 }
 
+const canvasFix = ref(false)
 const editorStore = useEditorStore()
 const components = computed(() => editorStore.components)
 const currentElement = computed<ComponentData | null>(() => editorStore.getCurrentElement || null)
+const page = computed(() => editorStore.page)
 
-function onInlineEditChange() {
-  // console.log('onInlineEditChange')
+function onInlineEditChange(newTitle: string) {
+  editorStore.updatePage({ key: 'title', value: newTitle, isRoot: true })
+}
+
+function handlePageAttrChange(e: any) {
+  editorStore.updatePage(e)
 }
 
 function onAddComponentItem(component: ComponentData) {
@@ -47,14 +56,22 @@ function updatePosition(data: { left: number, top: number, id: string }) {
   // var object = { 'a': 1, 'b': '2', 'c': 3 };
   // _.pickBy(object, _.isNumber);
   // => { 'a': 1, 'c': 3 }
-  const updatedData = pickBy<number>(data, (val, key) => key !== 'id')
+  const updatedData = pickBy<number>(data, (_, key) => key !== 'id')
   const keysArr = Object.keys(updatedData)
   const valuesArr = Object.values(updatedData).map(v => `${v}px`)
 
-  editorStore.updateComponent({ key: keysArr as (keyof AllComponentProps | Array<keyof AllComponentProps>), value: valuesArr, id })
+  editorStore.updateComponent({
+    key: keysArr as (keyof AllComponentProps | Array<keyof AllComponentProps>),
+    value: valuesArr,
+    id,
+  })
 }
 
 function handleAttrsChange(e: any) {
+  editorStore.updateComponent(e)
+}
+
+function handleLayerChange(e: any) {
   editorStore.updateComponent(e)
 }
 </script>
@@ -66,7 +83,7 @@ function handleAttrsChange(e: any) {
         <router-link to="/">
           <img alt="乐高 lego" src="@/assets/images/logo-simple.png" class="logo-img">
         </router-link>
-        <InlineEdit value="inline-edit" @change="onInlineEditChange" />
+        <InlineEdit :value="page.title || ''" @change="onInlineEditChange" />
       </div>
       <a-menu
         :selectable="false"
@@ -104,26 +121,29 @@ function handleAttrsChange(e: any) {
     </a-layout-sider>
     <a-layout style="padding: 0 24px 24px">
       <a-layout-content class="preview-container">
-        <div id="canvas-area" class="preview-list">
-          <EditWrapper
-            v-for="componentItem in components"
-            :id="componentItem.id"
-            :key="componentItem.id"
-            :hidden="componentItem.isHidden"
-            :props="componentItem.props"
-            :active="componentItem.id === (currentElement && currentElement.id)"
-            @set-active="setActive"
-            @update-position="updatePosition"
-          >
-            <component
-              :is="legoComponents[componentItem.name]"
-              v-bind="componentItem.props"
-            />
-          </EditWrapper>
+        <HistoryArea />
+        <div id="canvas-area" class="preview-list" :class="{ 'canvas-fix': canvasFix }">
+          <div class="body-container" :style="page.props">
+            <EditWrapper
+              v-for="componentItem in components"
+              :id="componentItem.id"
+              :key="componentItem.id"
+              :hidden="componentItem.isHidden"
+              :props="componentItem.props"
+              :active="componentItem.id === (currentElement && currentElement.id)"
+              @set-active="setActive"
+              @update-position="updatePosition"
+            >
+              <component
+                :is="legoComponents[componentItem.name]"
+                v-bind="componentItem.props"
+              />
+            </EditWrapper>
+          </div>
         </div>
       </a-layout-content>
     </a-layout>
-    <a-layout-sider width="300" style="background: #fff" class="settings-panel">
+    <a-layout-sider width="300" class="settings-panel">
       <a-tabs type="card">
         <a-tab-pane key="component" tab="属性设置" class="no-top-radius">
           <EditGroup
@@ -139,8 +159,17 @@ function handleAttrsChange(e: any) {
             </a-empty>
           </div>
         </a-tab-pane>
-        <a-tab-pane key="layer" tab="图层设置" />
-        <a-tab-pane key="page" tab="页面设置" />
+        <a-tab-pane key="layer" tab="图层设置">
+          <LayerList
+            :list="components"
+            :selected-id="currentElement && currentElement.id ? currentElement.id : ''"
+            @select="setActive"
+            @change="handleLayerChange"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="page" tab="页面设置" class="page-setting-container">
+          <PropsTable :props="page.props as any" @change="handlePageAttrChange" />
+        </a-tab-pane>
       </a-tabs>
     </a-layout-sider>
   </a-layout>
@@ -157,12 +186,23 @@ function handleAttrsChange(e: any) {
     .logo-img {
       margin-right: 20px;
     }
+
+    .inline-edit-container {
+      color: #fff;
+      font-weight: bold;
+    }
   }
 
-  .user-profile-menu {
-    .user-profile-dropdown {
-      position: relative;
-      top: -5px;
+  .page-header-right {
+    display: flex;
+    flex: auto;
+    justify-content: right;
+
+    .user-profile-menu {
+      .user-profile-dropdown {
+        position: relative;
+        top: -5px;
+      }
     }
   }
 }
@@ -188,5 +228,14 @@ function handleAttrsChange(e: any) {
   overflow: hidden auto;
   background: #fff;
   border: 1px solid #efefef;
+}
+
+.settings-panel {
+  overflow: auto;
+  background: #fff
+}
+
+.page-setting-container {
+  padding: 16px;
 }
 </style>
