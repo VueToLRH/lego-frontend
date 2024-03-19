@@ -30,7 +30,7 @@ button.l-text-component {
 }
 
 .l-text-component {
-  position: relative !important;
+  // position: relative !important;
   box-sizing: border-box;
   white-space: pre-wrap;
 }

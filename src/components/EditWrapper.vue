@@ -173,7 +173,7 @@ function startMove(e: MouseEvent) {
   </div>
 </template>
 
-<style lang="less" scoped>
+<style lang="less">
 .edit-wrapper {
   box-sizing: content-box !important;
   padding: 0;

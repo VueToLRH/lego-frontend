@@ -39,7 +39,7 @@ const props = defineProps({
   },
   listType: {
     type: String as PropType<FileListType>,
-    defualt: 'text',
+    default: 'text',
   },
   showUploadList: {
     type: Boolean,
@@ -239,4 +239,85 @@ if (props.drag) {
   </div>
 </template>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.upload-list {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.upload-list li {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 200px;
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.8;
+  border-radius: 4px;
+  transition: all .5s cubic-bezier(.55,0,.1,1);
+
+  &:first-child {
+    margin-top: 10px;
+  }
+
+  .upload-list-thumbnail {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    vertical-align: middle;
+    background-color: #fff;
+  }
+
+  .file-icon {
+    svg {
+      margin-right: 5px;
+      color: rgb(0 0 0 / 45%);
+    }
+  }
+
+  .filename {
+    margin-right: 40px;
+    margin-left: 5px;
+  }
+
+  &.upload-error {
+    color: #f5222d;
+
+    svg {
+      color: #f5222d;
+    }
+  }
+
+  .file-status {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    display: block;
+    line-height: inherit;
+  }
+
+  .delete-icon {
+    position: absolute;
+    top: 0;
+    right: 7px;
+    display: none;
+    line-height: inherit;
+    cursor: pointer;
+  }
+
+  &:hover {
+    background-color: #efefef;
+
+    .file-status {
+      display: none;
+    }
+
+    .delete-icon {
+      display: block;
+    }
+  }
+}
+</style>

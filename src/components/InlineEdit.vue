@@ -74,7 +74,7 @@ useKeyPress('Escape', () => {
     <a-input
       v-if="isEditing"
       ref="inlineEditInputRef"
-      v-model="innerValue"
+      v-model:value="innerValue"
       placeholder="文本不能为空"
       :status="!validateInnerValue ? 'error' : ''"
     />
@@ -84,9 +84,20 @@ useKeyPress('Escape', () => {
   </div>
 </template>
 
-<style scoped>
+<style lang="less" scoped>
 .inline-edit-container {
-  color: #fff;
   cursor: pointer;
+
+  // .ant-input.ant-input-status-error {
+  //   border: 1px solid #f5222d;
+  // }
+
+  // .ant-input.ant-input-status-error:focus {
+  //   border-color: #f5222d;
+  // }
+
+  // .ant-input.ant-input-status-error::placeholder {
+  //   color: #f5222d;
+  // }
 }
 </style>

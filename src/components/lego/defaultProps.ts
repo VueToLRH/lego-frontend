@@ -60,7 +60,7 @@ export const commonDefaultProps: CommonComponentProps = {
   paddingBottom: '0px',
 
   borderStyle: 'none',
-  borderColor: '#000',
+  borderColor: '#000000',
   borderWidth: '0',
   borderRadius: '0',
 

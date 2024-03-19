@@ -110,6 +110,7 @@ function handleDelete() {
         <img id="processed-image" ref="cropperImg" :src="baseImageUrl">
       </div>
     </a-modal>
+
     <div class="image-preview" :style="{ backgroundImage: backgroundUrl }" :class="{ 'extra-height': showDelete }" />
     <div class="image-process">
       <StyledUploader @success="handleFileUploaded" />

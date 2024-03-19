@@ -129,6 +129,12 @@ export default defineComponent({
   margin-left: 28%;
 }
 
+/* stylelint-disable-next-line selector-id-pattern */
+#item-backgroundImage {
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
 .component-a-select .ant-select {
   width: 150px;
 }
